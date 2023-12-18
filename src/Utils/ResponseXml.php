@@ -82,10 +82,14 @@ final readonly class ResponseXml
 
         if (strtotime($value)) {
             $format = $this->dateFormat;
+            $date = new DateTime($value);
             $attr['type'] = 'date';
             $attr['class'] = DateTime::class;
             $attr['format'] = $format;
-            $value = (new DateTime($value))->format($format);
+            $attr['timezone'] = $date->getTimezone()->getName();
+            $attr['timezone_type'] = $date->getOffset();
+
+            $value = $date->format($format);
         }
 
         $xml->addElement($key, $value, $attr, createIfTextNull: true);
@@ -101,6 +105,8 @@ final readonly class ResponseXml
             $format = $this->dateFormat;
             $attr['type'] = 'date';
             $attr['format'] = $format;
+            $attr['timezone'] = $value->getTimezone()->getName();
+            $attr['timezone_type'] = $value->getOffset();
             $value = $value->format($format);
             $xml->addElement($key, $value, $attr, createIfTextNull: true);
         } else {
