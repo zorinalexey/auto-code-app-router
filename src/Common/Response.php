@@ -3,6 +3,7 @@
 namespace AutoCode\AppRouter\Common;
 
 use AutoCode\AppRouter\Abstractions\AbstractRoute;
+use AutoCode\AppRouter\Interfaces\ControllerInterface;
 use Closure;
 
 final class Response
@@ -11,9 +12,9 @@ final class Response
     private readonly AbstractRoute $route;
 
     private static array $contents = [
-        'document/html' => 'toString',
-        'application/xml' => 'toXml',
-        'application/json' => 'toJson',
+        'document/html',
+        'application/xml',
+        'application/json',
     ];
 
     public function __construct(AbstractRoute $route)
@@ -29,25 +30,26 @@ final class Response
         $headers = Request::getInstance()->headers;
         $contentType = mb_strtolower(($headers['Content-Type'] ?? 'document/html'));
 
-        foreach (self::$contents as $type => $method){
-            header('Content-Type :'.$type);
+        foreach (self::$contents as $type){
             if($contentType === $type){
-                $this->$method($action);
+                $this->echo($action, $type);
             }
         }
     }
 
-    private function toString(mixed $action):void
+    private function echo(mixed $action, string $contentType): void
     {
+        $data = null;
+        header('Content-Type :'.$contentType);
+
         if (($action instanceof Closure) || is_callable($action)) {
-            echo $action();
+            $data = (string)$action();
         }
-    }
 
-    private function toJson(mixed $action):void
-    {
-        $data = $action();
+        if($action instanceof ControllerInterface){
+            $data = $action->render();
+        }
 
-        echo json_encode($data, JSON_THROW_ON_ERROR);
+        echo $data;
     }
 }
