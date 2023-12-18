@@ -23,7 +23,7 @@ final class Request
         $this->session = $_SESSION ?? [];
         $this->cookie = $_COOKIE ?? [];
         $this->post = $_POST ?? [];
-        $this->get  = $_GET ?? [];
+        $this->get = $_GET ?? [];
         $this->files = $_FILES ?? [];
         $this->server = $_SERVER ?? [];
         $this->request = $_REQUEST ?? [];
@@ -32,21 +32,12 @@ final class Request
         $this->params = $this->setParams();
     }
 
-    public static function getInstance(): self
+    private function setHeaders(): array
     {
-        if (!self::$instance) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
+        return getallheaders();
     }
 
-    private function __clone()
-    {
-
-    }
-
-    private function setInput():mixed
+    private function setInput(): mixed
     {
         return file_get_contents("php://input");
     }
@@ -62,15 +53,17 @@ final class Request
         return (object)$params;
     }
 
-    private function setHeaders():array
+    public static function getInstance(): self
     {
-        $headers = [];
-
-        foreach (\getallheaders() as $item){
-            $header = explode(':', $item);
-            $headers[mb_strtoupper(trim($header[0]))] = trim($header[1]);
+        if (!self::$instance) {
+            self::$instance = new self();
         }
 
-        return $headers;
+        return self::$instance;
+    }
+
+    private function __clone()
+    {
+
     }
 }

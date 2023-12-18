@@ -17,11 +17,11 @@ final class ResponseValidated
         $this->response();
     }
 
-    private function response():void
+    private function response(): void
     {
         $action = $this->route->getAction();
 
-        if(( $action instanceof Closure) || is_callable($action)){
+        if (($action instanceof Closure) || is_callable($action)) {
             $action();
         }
     }

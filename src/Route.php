@@ -4,7 +4,6 @@ namespace AutoCode\AppRouter;
 
 use AutoCode\AppRouter\Abstractions\AbstractRoute as AbstractRoutes;
 use AutoCode\AppRouter\Common\Request;
-use AutoCode\AppRouter\Common\Response;
 use AutoCode\AppRouter\Common\ResponseValidated;
 use AutoCode\AppRouter\Interfaces\SetRoutesInterface;
 use AutoCode\AppRouter\Routes\Group;
@@ -25,15 +24,6 @@ final class Route
     private function __construct()
     {
 
-    }
-
-    public static function getInstance(): self
-    {
-        if (!self::$instance) {
-            self::$instance = new self();
-        }
-
-        return self::$instance;
     }
 
     public static function setRoute(AbstractRoutes $route): SetRoutesInterface
@@ -78,6 +68,15 @@ final class Route
     public function getRoutes(): array
     {
         return self::$routes;
+    }
+
+    public static function getInstance(): self
+    {
+        if (!self::$instance) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
     }
 
     private function __clone()
