@@ -10,7 +10,8 @@ if (!function_exists('getallheaders'))
         {
             if (str_starts_with(mb_strtoupper($name), 'HTTP_'))
             {
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value;
+                $key = str_replace('HTTP_', '', $name);
+                $headers[$key] = $value;
             }
         }
 
