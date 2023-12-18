@@ -6,6 +6,8 @@ use AutoCode\AppRouter\Abstractions\AbstractRoute;
 use AutoCode\AppRouter\Interfaces\ControllerInterface;
 use Closure;
 use CloudCastle\Xml\Generator\XmlService;
+use DateTime;
+use Sabre\DAV\Exception;
 
 final class Response
 {
@@ -73,13 +75,23 @@ final class Response
 
     private function toXml(mixed $data): string
     {
+        $rootElementName = 'response';
+        $attr['type'] = gettype($data);
+
+        if($attr['type'] === 'object'){
+            $attr['class'] = $data::class;
+        }
+
         $xml = new XmlService();
-        $xml->startElement('root');
 
         if (is_array($data) || is_object($data)) {
+            $xml->startElement($rootElementName, null, $attr);
+
             foreach ($data as $key => $value) {
                 $this->addElement($key, $value, $xml);
             }
+        }else{
+            $xml->startElement($rootElementName, $data, $attr);
         }
 
         $xml->closeElement();
@@ -90,19 +102,47 @@ final class Response
     private function addElement(int|string $key, mixed $value, XmlService $xml): void
     {
         $attr['type'] = gettype($value);
+        $attr['error'] = false;
 
+        if (is_string($value) ) {
+            $this->setTextXmlBlock($value, $xml, $key, $attr);
+        }elseif(is_bool($value) || is_numeric($value)){
+            $xml->addElement($key, (string)$value, $attr);
+        }elseif ($value === null){
+            $value = 'NULL';
+            $xml->addElement($key, $value, $attr);
+        }elseif(!is_resource($value) && !is_callable($value)) {
+            $this->setSuperXmlBlock($value, $xml, $key, $attr);
+        }else{
+            $xml->addElement($key, null, [...$attr, 'message' => 'Не поддерживаемый тип данных', 'error' => true]);
+        }
+    }
+
+    private function setTextXmlBlock(string $value, XmlService $xml, string|int $key, array $attr):void
+    {
+        if(strtotime($value)){
+            $format = 'Y-m-d H:i:s';
+            $attr['type'] = 'date';
+            $attr['class'] = DateTime::class;
+            $attr['format'] = $format;
+            $value = (new DateTime($value))->format($format);
+        }
+
+        $xml->addElement($key, $value, $attr, createIfTextNull: true);
+    }
+
+    private function setSuperXmlBlock(mixed $value, XmlService $xml, int|string $key, array $attr):void
+    {
         if($attr['type'] === 'object'){
             $attr['class'] = $value::class;
         }
 
-        if (is_string($value) || is_int($value) || is_bool($value) || $value === null) {
-            $xml->addElement($key, (string)$value, $attr);
-        } else {
-            $xml->startElement($key, null, $attr);
-            foreach ($value as $k => $val) {
-                $this->addElement($k, $val, $xml);
-            }
-            $xml->closeElement();
+        $xml->startElement($key, null, $attr);
+
+        foreach ($value as $k => $val) {
+            $this->addElement($k, $val, $xml);
         }
+
+        $xml->closeElement();
     }
 }
