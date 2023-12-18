@@ -88,7 +88,7 @@ final readonly class ResponseXml
             $attr['format'] = $format;
             $attr['timezone'] = $date->getTimezone()->getName();
             $attr['offset'] = $date->getOffset();
-            $attr['timezone_type'] = $date->getTimezone()->getLocation();
+            $xml->addElement('location', null, $date->getTimezone()->getLocation());
 
             $value = $date->format($format);
         }
@@ -108,7 +108,7 @@ final readonly class ResponseXml
             $attr['format'] = $format;
             $attr['timezone'] = $value->getTimezone()->getName();
             $attr['offset'] = $value->getOffset();
-            $attr['timezone_type'] = $value->getTimezone()->getLocation();
+            $xml->addElement('location', null, $value->getTimezone()->getLocation());
             $value = $value->format($format);
             $xml->addElement($key, $value, $attr, createIfTextNull: true);
         } else {
