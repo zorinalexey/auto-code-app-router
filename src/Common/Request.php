@@ -36,11 +36,11 @@ final class Request
     {
         $headers = [];
 
-        foreach ($_SERVER as $name => $value) {
+        foreach ($this->server as $name => $value) {
             $name = mb_strtoupper($name);
-            if (\str_starts_with('HTTP_', $name)) {
-                $key = str_replace('HTTP_', '', $name);
-                $headers[str_replace(' ', '-', ucwords(mb_strtolower(str_replace('_', ' ', $key))))] = $value;
+
+            if(preg_match('~^(HTTP_(?<key>\w+))$~ui', $name, $matches)){
+                $headers[$this->getHeaderName($matches)] = $value;
             }
         }
 
@@ -75,5 +75,17 @@ final class Request
     private function __clone()
     {
 
+    }
+
+    private function getHeaderName(array $matches):string
+    {
+        $name = '';
+        $chunks = explode('_', $matches['key']);
+
+        foreach ($chunks as $chunk){
+            $name .= ucfirst(mb_strtolower($chunk)).'-';
+        }
+
+        return trim($name, '-');
     }
 }
