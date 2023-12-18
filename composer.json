@@ -6,10 +6,7 @@
     "autoload": {
         "psr-4": {
             "AutoCode\\AppRouter\\": "src/"
-        },
-        "files": [
-            "src/Utils/functions.php"
-        ]
+        }
     },
     "authors": [
         {
