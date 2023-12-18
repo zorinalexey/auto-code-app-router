@@ -87,10 +87,11 @@ final class Response
 
     private function addElement(int|string $key, mixed $value, XmlService $xml): void
     {
+        $type = ['type' => gettype($value)];
         if (is_string($value) || is_int($value) || is_bool($value) || $value === null) {
-            $xml->addElement($key, (string)$value);
+            $xml->addElement($key, (string)$value, $type);
         } else {
-            $xml->startElement($key);
+            $xml->startElement($key, null, $type);
             foreach ($value as $k => $val) {
                 $this->addElement($k, $val, $xml);
             }
