@@ -34,7 +34,17 @@ final class Request
 
     private function setHeaders(): array
     {
-        return getallheaders();
+        $headers = [];
+
+        foreach ($_SERVER as $name => $value) {
+            $name = mb_strtoupper($name);
+            if (\str_starts_with('HTTP_', $name)) {
+                $key = str_replace('HTTP_', '', $name);
+                $headers[str_replace(' ', '-', ucwords(mb_strtolower(str_replace('_', ' ', $key))))] = $value;
+            }
+        }
+
+        return $headers;
     }
 
     private function setInput(): mixed
