@@ -27,7 +27,7 @@ final class Request
         $this->files = $_FILES ?? [];
         $this->server = $_SERVER ?? [];
         $this->request = $_REQUEST ?? [];
-        $this->headers = headers_list() ?? [];
+        $this->headers = $this->setHeaders();
         $this->input = $this->setInput();
         $this->params = $this->setParams();
     }
@@ -55,10 +55,22 @@ final class Request
     {
         $params = [
             'request_patch' => trim($this->server['PATH_INFO'] ?? '', '/'),
-            'request_method' => trim(mb_strtoupper($this->server['REQUEST_METHOD'] ?? '')),
-            'request_port' => (int)$this->server['SERVER_PORT'] ?? 0,
+            'request_method' => mb_strtoupper(trim($this->server['REQUEST_METHOD'] ?? '')),
+            'request_port' => (int)($this->server['SERVER_PORT'] ?? 0),
         ];
 
         return (object)$params;
+    }
+
+    private function setHeaders():array
+    {
+        $headers = [];
+
+        foreach (headers_list() as $item){
+            $header = explode(':', $item);
+            $headers[mb_strtoupper(trim($header[0]))] = trim($header[1]);
+        }
+
+        return $headers;
     }
 }

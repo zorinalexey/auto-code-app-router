@@ -17,7 +17,7 @@ final class ResponseValidated
         $this->response();
     }
 
-    private function response()
+    private function response():void
     {
         $action = $this->route->getAction();
 
