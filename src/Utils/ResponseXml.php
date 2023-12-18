@@ -62,8 +62,7 @@ final readonly class ResponseXml
         } elseif (is_bool($value) || is_numeric($value)) {
             $xml->addElement($key, (string)$value, $attr);
         } elseif ($value === null) {
-            $value = 'NULL';
-            $xml->addElement($key, $value, $attr);
+            $xml->addElement($key, $value, $attr, createIfTextNull: true);
         } elseif ((is_array($value) || is_object($value)) && !($value instanceof Closure)) {
             $this->setSuperBlock($value, $xml, $key, $attr);
         } elseif (($value instanceof Closure) || is_callable($value)) {
@@ -75,7 +74,7 @@ final readonly class ResponseXml
 
     private function setTextBlock(string $value, XmlService $xml, string|int $key, array $attr): void
     {
-        if($this->fileAutoEncode && is_file($value)){
+        if ($this->fileAutoEncode && is_file($value)) {
             $attr['type'] = 'file';
             $attr['encode'] = 'base64';
             $value = base64_encode(file_get_contents($value));
@@ -98,13 +97,13 @@ final readonly class ResponseXml
             $attr['class'] = $value::class;
         }
 
-        if($value instanceof DateTime){
+        if ($value instanceof DateTime) {
             $format = $this->dateFormat;
             $attr['type'] = 'date';
             $attr['format'] = $format;
             $value = $value->format($format);
             $xml->addElement($key, $value, $attr, createIfTextNull: true);
-        }else{
+        } else {
             $xml->startElement($key, null, $attr);
 
             foreach ($value as $k => $val) {
