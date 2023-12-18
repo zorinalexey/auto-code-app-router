@@ -53,20 +53,22 @@ final class Response
         echo $this->$method($data);
     }
 
-    private function toHtml(mixed $data): string
+    private function toHtml(mixed $data): string|null
     {
         if (is_string($data)) {
             return $data;
         }
+
+        return null;
     }
 
     private function toJson(mixed $data): string
     {
         if (is_string($data)) {
             return $data;
-        } else {
-            return json_encode($data, JSON_THROW_ON_ERROR);
         }
+
+        return json_encode( $data);
     }
 
     private function toXml(mixed $data): string
@@ -74,7 +76,7 @@ final class Response
         $xml = new XmlService();
         $xml->startElement('root');
 
-        if (is_array($data) or is_object($data)) {
+        if (is_array($data) || is_object($data)) {
             foreach ($data as $key => $value) {
                 $this->addElement($key, $value, $xml);
             }
@@ -87,11 +89,16 @@ final class Response
 
     private function addElement(int|string $key, mixed $value, XmlService $xml): void
     {
-        $type = ['type' => gettype($value)];
+        $attr['type'] = gettype($value);
+
+        if($attr['type'] === 'object'){
+            $attr['class'] = $value::class;
+        }
+
         if (is_string($value) || is_int($value) || is_bool($value) || $value === null) {
-            $xml->addElement($key, (string)$value, $type);
+            $xml->addElement($key, (string)$value, $attr);
         } else {
-            $xml->startElement($key, null, $type);
+            $xml->startElement($key, null, $attr);
             foreach ($value as $k => $val) {
                 $this->addElement($k, $val, $xml);
             }
