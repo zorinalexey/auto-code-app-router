@@ -21,6 +21,7 @@
     "require": {
         "php": ">=8.2",
         "ext-mbstring": "*",
-        "cloud-castle/xml-service": "1.0.1.2"
+        "cloud-castle/xml-service": "1.0.1.2",
+        "opis/closure": "^3.6"
     }
 }
