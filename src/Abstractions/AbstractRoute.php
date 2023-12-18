@@ -15,9 +15,7 @@ abstract class AbstractRoute implements SetRoutesInterface
     private string $prefix = '';
     private array $middlewares = [];
     private array $validators = [];
-    private array $ports = [
-
-    ];
+    private array $ports = [];
     private array $methods = [];
     private Closure|null $action = null;
     private Group|null $parent = null;
@@ -149,6 +147,7 @@ abstract class AbstractRoute implements SetRoutesInterface
             'varNames' => $vars,
             'requests' => $requests,
             'request' => $request,
+            'method' => $this->method,
             'ip' => [
                 'whiteList' => $this->getWhiteListIp(),
                 'blackList' => $this->getBlackListIp(),
@@ -192,16 +191,14 @@ abstract class AbstractRoute implements SetRoutesInterface
 
     final public function getPorts(): array
     {
-        $ports = $this->ports;
-
         if ($parent = $this->getParent()) {
-            $ports = [
+            return [
                 ...$parent->getPorts(),
                 ...$this->ports
             ];
         }
 
-        return $ports;
+        return $this->ports;
     }
 
     final public function getMiddlewares(): array

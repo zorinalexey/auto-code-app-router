@@ -3,7 +3,9 @@
 namespace AutoCode\AppRouter;
 
 use AutoCode\AppRouter\Abstractions\AbstractRoute as AbstractRoutes;
+use AutoCode\AppRouter\Common\Request;
 use AutoCode\AppRouter\Common\Response;
+use AutoCode\AppRouter\Common\ResponseValidated;
 use AutoCode\AppRouter\Interfaces\SetRoutesInterface;
 use AutoCode\AppRouter\Routes\Group;
 use AutoCode\AppRouter\Utils\RouterStaticMethodsTrait;
@@ -49,16 +51,24 @@ final class Route
         return $route;
     }
 
-    public function run(): string|null
+    public function run(): ResponseValidated|null
     {
         $routes = $this->getRoutes();
+        $request = Request::getInstance();
+
+        var_dump($request);
 
         foreach ($routes as $route) {
             if (
                 $route instanceof AbstractRoutes &&
                 ($info = $route->getInfo()) && isset($info['pattern']) &&
-                preg_match($info['pattern'], ) ) {
-
+                preg_match($info['pattern'], $request->params->request_patch) && (
+                    $info['method']->value === $request->params->request_method ||
+                    in_array($request->params->request_method, $route->getMethods())
+                )
+                && in_array((int)$request->params->request_port, $info['ports'])
+            ) {
+                return new ResponseValidated($route);
             }
         }
 

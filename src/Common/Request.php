@@ -14,7 +14,8 @@ final class Request
     public readonly array $server;
     public readonly array $request;
     public readonly array $headers;
-    public readonly string $input;
+    public readonly mixed $input;
+    public readonly object $params;
 
     private function __construct()
     {
@@ -27,7 +28,8 @@ final class Request
         $this->server = $_SERVER ?? [];
         $this->request = $_REQUEST ?? [];
         $this->headers = headers_list() ?? [];
-        $this->input = file_get_contents("php://input");
+        $this->input = $this->setInput();
+        $this->params = $this->setParams();
     }
 
     public static function getInstance(): self
@@ -42,5 +44,21 @@ final class Request
     private function __clone()
     {
 
+    }
+
+    private function setInput():mixed
+    {
+        return file_get_contents("php://input");
+    }
+
+    public function setParams(): object
+    {
+        $params = [
+            'request_patch' => trim($this->server['PATH_INFO'] ?? '', '/'),
+            'request_method' => trim(mb_strtoupper($this->server['REQUEST_METHOD'] ?? '')),
+            'request_port' => (int)$this->server['SERVER_PORT'] ?? 0,
+        ];
+
+        return (object)$params;
     }
 }
