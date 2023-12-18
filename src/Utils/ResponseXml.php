@@ -7,18 +7,24 @@ use CloudCastle\Xml\Generator\XmlService;
 use DateTime;
 use Opis\Closure\SerializableClosure;
 
-final class ResponseXml
+final readonly class ResponseXml
 {
     private string $xml;
+    private string $rootElementName;
+    private bool $fileAutoEncode;
+    private string $dateFormat;
 
     public function __construct(mixed $data)
     {
+        $this->dateFormat = config('app', 'response_xml_date_format', 'Y-m-d H:i:s');
+        $this->rootElementName = config('app', 'response_xml_root_element_name', 'response');
+        $this->fileAutoEncode = config('app', 'response_file_auto_encode', true);
         $this->xml = $this->createSchema($data);
     }
 
     private function createSchema(mixed $data): string
     {
-        $rootElementName = config('app', 'xml_response_root_element_name', 'response');
+        $rootElementName = $this->rootElementName;
         $attr['type'] = gettype($data);
 
         if ($attr['type'] === 'object') {
@@ -51,10 +57,6 @@ final class ResponseXml
             $key = "_{$key}";
         }
 
-        if(is_file($value) && config('app', 'response_file_auto_encode', true)){
-            $value = base64_encode(file_get_contents($value));
-        }
-
         if (is_string($value)) {
             $this->setTextBlock($value, $xml, $key, $attr);
         } elseif (is_bool($value) || is_numeric($value)) {
@@ -73,8 +75,14 @@ final class ResponseXml
 
     private function setTextBlock(string $value, XmlService $xml, string|int $key, array $attr): void
     {
+        if($this->fileAutoEncode && is_file($value)){
+            $attr['type'] = 'file';
+            $attr['encode'] = 'base64';
+            $value = base64_encode(file_get_contents($value));
+        }
+
         if (strtotime($value)) {
-            $format = 'Y-m-d H:i:s';
+            $format = $this->dateFormat;
             $attr['type'] = 'date';
             $attr['class'] = DateTime::class;
             $attr['format'] = $format;
@@ -90,13 +98,22 @@ final class ResponseXml
             $attr['class'] = $value::class;
         }
 
-        $xml->startElement($key, null, $attr);
+        if($value instanceof DateTime){
+            $format = $this->dateFormat;
+            $attr['type'] = 'date';
+            $attr['format'] = $format;
+            $value = $value->format($format);
+            $xml->addElement($key, $value, $attr, createIfTextNull: true);
+        }else{
+            $xml->startElement($key, null, $attr);
 
-        foreach ($value as $k => $val) {
-            $this->createStructure($k, $val, $xml);
+            foreach ($value as $k => $val) {
+                $this->createStructure($k, $val, $xml);
+            }
+
+            $xml->closeElement();
         }
 
-        $xml->closeElement();
     }
 
     private function setSerializableBlock(callable|Closure $value, XmlService $xml, int|string $key, array $attr): void
