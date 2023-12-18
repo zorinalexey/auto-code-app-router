@@ -50,8 +50,8 @@ final class Route
             if (
                 $route instanceof AbstractRoutes &&
                 ($info = $route->getInfo()) && isset($info['pattern']) &&
-                $info['method']->value === $request->params->request_method  &&
-                preg_match($info['pattern'], $request->params->request_patch)&&
+                $info['method']->value === $request->params->request_method &&
+                preg_match($info['pattern'], $request->params->request_patch) &&
                 in_array((int)$request->params->request_port, $info['ports'], true)
             ) {
                 return new Response($route);

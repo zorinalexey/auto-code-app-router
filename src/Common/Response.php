@@ -5,17 +5,17 @@ namespace AutoCode\AppRouter\Common;
 use AutoCode\AppRouter\Abstractions\AbstractRoute;
 use AutoCode\AppRouter\Interfaces\ControllerInterface;
 use Closure;
+use CloudCastle\Xml\Generator\XmlService;
 
 final class Response
 {
 
-    private readonly AbstractRoute $route;
-
     private static array $contents = [
-        'document/html',
-        'application/xml',
-        'application/json',
+        'document/html' => 'toHtml',
+        'application/xml' => 'toXml',
+        'application/json' => 'toJson',
     ];
+    private readonly AbstractRoute $route;
 
     public function __construct(AbstractRoute $route)
     {
@@ -30,26 +30,71 @@ final class Response
         $headers = Request::getInstance()->headers;
         $contentType = mb_strtolower(($headers['Content-Type'] ?? 'document/html'));
 
-        foreach (self::$contents as $type){
-            if($contentType === $type){
-                $this->echo($action, $type);
+        foreach (self::$contents as $type => $method) {
+            if ($contentType === $type) {
+                $this->echo($action, $type, $method);
             }
         }
     }
 
-    private function echo(mixed $action, string $contentType): void
+    private function echo(mixed $action, string $contentType, string $method): void
     {
         $data = null;
-        header('Content-Type :'.$contentType);
+        header('Content-Type: ' . $contentType);
 
         if (($action instanceof Closure) || is_callable($action)) {
-            $data = (string)$action();
+            $data = $action();
         }
 
-        if($action instanceof ControllerInterface){
+        if ($action instanceof ControllerInterface) {
             $data = $action->render();
         }
 
-        echo $data;
+        echo $this->$method($data);
+    }
+
+    private function toHtml(mixed $data): string
+    {
+        if (is_string($data)) {
+            return $data;
+        }
+    }
+
+    private function toJson(mixed $data): string
+    {
+        if (is_string($data)) {
+            return $data;
+        } else {
+            return json_encode($data, JSON_THROW_ON_ERROR);
+        }
+    }
+
+    private function toXml(mixed $data): string
+    {
+        $xml = new XmlService();
+        $xml->startElement('root');
+
+        if (is_array($data) or is_object($data)) {
+            foreach ($data as $key => $value) {
+                $this->addElement($key, $value, $xml);
+            }
+        }
+
+        $xml->closeElement();
+
+        return $xml->get();
+    }
+
+    private function addElement(int|string $key, mixed $value, XmlService $xml): void
+    {
+        if (is_string($value) || is_int($value) || is_bool($value) || $value === null) {
+            $xml->addElement($key, (string)$value);
+        } else {
+            $xml->startElement($key);
+            foreach ($value as $k => $val) {
+                $this->addElement($k, $val, $xml);
+            }
+            $xml->closeElement();
+        }
     }
 }

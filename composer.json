@@ -20,6 +20,7 @@
     "minimum-stability": "stable",
     "require": {
         "php": ">=8.2",
-        "ext-mbstring": "*"
+        "ext-mbstring": "*",
+        "cloud-castle/xml-service": "1.0.1.2"
     }
 }
