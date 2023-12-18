@@ -8,7 +8,7 @@
             "AutoCode\\AppRouter\\": "src/"
         },
         "files": [
-            ""
+            "src/Utils/functions.php"
         ]
     },
     "authors": [
