@@ -66,7 +66,7 @@ final class Request
     {
         $headers = [];
 
-        foreach (headers_list() as $item){
+        foreach (getallheaders() as $item){
             $header = explode(':', $item);
             $headers[mb_strtoupper(trim($header[0]))] = trim($header[1]);
         }
